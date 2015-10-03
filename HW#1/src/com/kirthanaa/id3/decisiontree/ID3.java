@@ -5,7 +5,6 @@ import com.kirthanaa.id3.entities.ID3Attribute;
 import com.kirthanaa.id3.entities.ID3Class;
 import com.kirthanaa.id3.entities.ID3ContinuousInstance;
 import com.kirthanaa.id3.entities.ID3TreeNode;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.*;
 
@@ -15,8 +14,6 @@ import java.util.*;
 public class ID3 {
 
     private static ARFFReader mArffReader;
-
-    private static ID3TreeNode mID3RootNode = null;
 
     private static int minNoOfInstances = 2;
 
@@ -68,12 +65,11 @@ public class ID3 {
      *
      * @param attribute Nominal ID3Attribute for which entropy is to be calculated
      * @param data      Data instances to be considered while calculating the entropy
-     * @return Entropy
+     * @return Entropy Entropy of the nominal attribute
      */
     private static double getEntropyForNominalAttribute(ID3Attribute attribute, ArrayList<String[]> data) {
 
         ID3Class id3Class = mArffReader.getID3Class();
-        int attributeCount = 0;
         double entropy = 0.0;
 
         if (data.size() == 0) {
@@ -104,16 +100,6 @@ public class ID3 {
                                 getEntropy(labelSubCountSecondClass, labelCount);
                 entropy += ((double) labelCount / data.size()) * subEntropy;
 
-
-/*
-                if (attributeCount != 0) {
-                    double pi = ((double) attributeCount / (double) data.size());
-                    double logpi = log2(pi);
-                    entropy = entropy + (-pi * logpi);
-                } else {
-                    entropy = entropy + 0.0;
-                }
-                */
             }
         }
         return -entropy;
@@ -127,7 +113,7 @@ public class ID3 {
      * @param attribute      Continuous ID3Attribute for which entropy is to be calculated
      * @param attributeValue Value of attribute over which instances are to be split
      * @param data           Data instances to be considered while calculating the entropy
-     * @return Entropy
+     * @return Entropy Entropy of the continuous attribute
      */
     private static double getEntropyForContinuousAttribute(ID3Attribute attribute, double attributeValue, ArrayList<String[]> data) {
         int attributeLessThanCount = 0;
@@ -224,28 +210,6 @@ public class ID3 {
                 log2p22 = log2(p22);
             }
             entropy = -((p1 * ((p11 * log2p11) + (p12 * log2p12))) + (p2 * ((p21 * log2p21) + (p22 * log2p22))));
-            //entropy = -((p1 * (p11 * log2(p11) + p12 * log2(p12))) + (p2 * (p21 * log2(p21) + p22 * log2(p22))));
-
-            /*double p1 = 0.0;
-            double p2 = 0.0;
-            double p1logp1 = 0.0;
-            double p2logp2 = 0.0;
-            if (attributeLessThanCount == 0) {
-                p1 = 0.0;
-                p1logp1 = 0.0;
-            } else {
-                p1 = (double) attributeLessThanCount / (double) data.size();
-                p1logp1 = log2(p1);
-            }
-            if (attributeGreaterThanCount == 0) {
-                p2 = 0.0;
-                p2logp2 = 0.0;
-            } else {
-                p2 = (double) attributeGreaterThanCount / (double) data.size();
-                p2logp2 = log2(p2);
-            }
-            entropy = -(p1 * p1logp1) - (p2 * p2logp2);*/
-
         }
         return entropy;
     }
@@ -264,14 +228,10 @@ public class ID3 {
     private static double getBestSplitForContinuousAttribute(ID3Attribute attribute, ArrayList<String[]> data) {
         if (data.size() == 0) {
             //TODO Decide how to handle this
-            System.out.println("Data instances list is of size 0 for attribute " + attribute.mAttributeName);
+            //System.out.println("Data instances list is of size 0 for attribute " + attribute.mAttributeName);
         } else {
-
             int attributeOrdinal = attribute.mAttributeOrdinal;
-
-            int[] candidateSplitPoints = new int[data.size()];
             double[] entropy;
-            int noOfCandidateSplits = 0;
             int bestCandidateSplitIndex = 0;
             double informationGain = 0.0;
 
@@ -282,74 +242,23 @@ public class ID3 {
                         data.get(i)[data.get(i).length - 1]);
                 continuousInstancesList.add(id3ContinuousInstance);
             }
-            /*if (attribute.mAttributeName.equalsIgnoreCase("thalach") && data.size() == 103) {
-                for(int i = 0; i < continuousInstancesList.size(); i++) {
-                    System.out.println("Continuous instance list : " + continuousInstancesList.get(i).mInstanceValue);
-                }
-            }*/
 
             Collections.sort(continuousInstancesList);
-            /*f (attribute.mAttributeName.equalsIgnoreCase("thalach") && data.size() == 103) {
-                for(int i = 0; i < continuousInstancesList.size(); i++) {
-                    System.out.println("Sorted Continuous instance list : " + continuousInstancesList.get(i).mInstanceValue);
-                }
-            }*/
+
             TreeSet<Double> continuousInstanceTreeSet = new TreeSet<Double>();
-            /*if (attribute.mAttributeName.equalsIgnoreCase("thalach")) {
-                System.out.println("Candidate key length : " + continuousInstancesList.size());
-            }*/
 
             for (int i = 0; i < continuousInstancesList.size(); i++) {
                 continuousInstanceTreeSet.add(continuousInstancesList.get(i).mInstanceValue);
             }
-            /*System.out.println("Set list : ");
-            for (double d : continuousInstanceTreeSet) {
-                System.out.println(d);
-            }*/
-
-            int k = 0;
-            /*for (int j = 0; j < continuousInstancesList.size(); j++) {
-                //TODO Check condition for attributes with same value but different class labels
-                //if (!continuousInstancesList.get(j).mInstanceLabel.equalsIgnoreCase(continuousInstancesList.get(j + 1).mInstanceLabel)) {
-                candidateSplitPoints[k++] = j;
-                    *//*System.out.println("###############################################################");
-                    System.out.println("Candidate split identified at index " + j + " and index " + (j+1));
-                    System.out.println("Class at index " + j + " : " + continuousInstancesList.get(j).mInstanceLabel);
-                    System.out.println("Class at index " + (j+1) + " : " + continuousInstancesList.get(j + 1).mInstanceLabel);
-                    System.out.println("###############################################################");*//*
-                //}
-            }
-            noOfCandidateSplits = k - 1;
-
-            *//*for (k = 0; k < noOfCandidateSplits; k++) {
-                entropy[k] = getEntropyForContinuousAttribute(attribute,
-                        (continuousInstancesList.get(candidateSplitPoints[k]).mInstanceValue +
-                        continuousInstancesList.get(candidateSplitPoints[k]+1).mInstanceValue)/2.0, data);
-                //System.out.println("Entropy for candidate split at index " + k + " : " + entropy[k]);
-            }
-
-            for (k = 0; k < data.size() - 1; k++) {
-                entropy[k] = getEntropyForContinuousAttribute(attribute,
-                        (continuousInstancesList.get(k).mInstanceValue + continuousInstancesList.get(k + 1).mInstanceValue) / 2.0,
-                        data);
-            }*/
 
             List<Double> valueList = new ArrayList<Double>(continuousInstanceTreeSet);
-            /*if (attribute.mAttributeName.equalsIgnoreCase("thalach")) {
-                System.out.println("Candidate keys for attribute " + attribute.mAttributeName + " : ");
-                for (double d : valueList) {
-                    System.out.println(d);
-                }
-            }*/
             List<Double> avgList = new ArrayList<Double>();
-            //continuousInstanc
-            //System.out.println("avg list");
+
             for (int i = 0; i < valueList.size() - 1; i++) {
                 avgList.add((valueList.get(i) + valueList.get(i + 1)) / 2.0);
-                //System.out.println(avgList.get(i));
             }
             entropy = new double[avgList.size()];
-            for (k = 0; k < avgList.size(); k++) {
+            for (int k = 0; k < avgList.size(); k++) {
                 entropy[k] = getEntropyForContinuousAttribute(attribute,
                         avgList.get(k), data);
             }
@@ -394,7 +303,6 @@ public class ID3 {
         int numberOfClassLabels = id3Class.mNoOfClasses;
         double entropy = 0.0;
 
-        //TODO - Check again for accuracy
         int totalInstances = data.size();
         for (int i = 0; i < numberOfClassLabels; i++) {
             int classCount = 0;
@@ -422,14 +330,10 @@ public class ID3 {
      * @return log2 (n)
      */
     public static double log2(double n) {
-        /*if(n == 0.000){
-            return 0.0;
-        }*/
         double num = Math.log(n);
         double den = Math.log(2.00);
         double ans = num / den;
         return ans;
-        //return (Math.log(n) / Math.log((double)2));
     }
 
     /**
@@ -571,14 +475,10 @@ public class ID3 {
                     }
                 }
             }
-            //System.out.println("Maximum information gain : " + maxInfoGain);
-            //System.out.println("Maximum information gain index : " + maxInfoGainIndex);
-            //TODO - check if info gain of first attribute is always taken when several attributes have same information gain
+
             ID3Attribute splitAttribute = mArffReader.getAttributeList().get(maxInfoGainIndex);
             System.out.println("Splitting on attribute : " + splitAttribute.mAttributeName + " at node level : " + nodeLevel);
             if (splitAttribute.mAttributeType == ID3Attribute.NOMINAL) {
-                //Remove the nominal attribute from the list as we do not need it further
-                //unProcessedAttributeList.remove(splitAttribute);
                 ID3TreeNode id3TreeNode = new ID3TreeNode();
                 id3TreeNode.mIsLeafNode = false;
                 id3TreeNode.mNodeLevel = nodeLevel;
@@ -633,23 +533,13 @@ public class ID3 {
     }
 
 
-    private static void printDecisionTree() {
+    /**
+     * Prints the decision tree in the required format
+     *
+     * @param rootNode Root of the decision tree
+     */
+    private static void printDecisionTree(ID3TreeNode rootNode) {
 
-    }
-
-
-    private static ID3TreeNode getDummyNode() {
-        ID3TreeNode id3TreeNode = new ID3TreeNode();
-        id3TreeNode.mChildren = null;
-        id3TreeNode.mAttributeOrdinal = -1;
-        id3TreeNode.mIsLeafNode = false;
-        id3TreeNode.mNodeAttribute = null;
-        id3TreeNode.mContinuousAttributeThreshold = 0.0;
-        id3TreeNode.mInstancesAtNode = mArffReader.getDataInstanceList();
-        id3TreeNode.mLabel = "";
-        id3TreeNode.mNodeLevel = 0;
-        id3TreeNode.mNodeType = -1;
-        return id3TreeNode;
     }
 
     /**
@@ -664,13 +554,14 @@ public class ID3 {
     public static void main(String[] args) {
         //TODO - Fetch the input and output filenames from command line
         String filename = "/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_train.arff";
+
         parseARFFFile(filename);
+
         setUnProcessedAttributeList();
-        //mID3RootNode = getDummyNode();
-        mID3RootNode = buildDecisionTree(mArffReader.getDataInstanceList(), 0);
 
-        printDecisionTree();
+        ID3TreeNode mID3RootNode = buildDecisionTree(mArffReader.getDataInstanceList(), 0);
 
+        printDecisionTree(mID3RootNode);
 
     }
 
