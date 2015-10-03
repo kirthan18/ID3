@@ -60,7 +60,7 @@ public class ARFFReader {
                 }
                 ID3Attribute id3Attribute = new ID3Attribute(attributeOrdinal, attributeName, attributeType, attributeValues);
                 mID3AttributeList.add(id3Attribute);
-                System.out.println("Added attribute " + id3Attribute.mAttributeName + " to attribute list!");
+                //System.out.println("Added attribute " + id3Attribute.mAttributeName + " to attribute list!");
             }
         }
     }
@@ -90,7 +90,7 @@ public class ARFFReader {
             String classLabels[] = new String[data.attribute(data.numAttributes() - 1).numValues()];
             for (int j = 0; j < data.attribute(data.numAttributes() - 1).numValues(); j++) {
                 classLabels[j] = data.attribute(data.numAttributes() - 1).value(j);
-                System.out.println("Added class label " + classLabels[j] + " to ID3 class ");
+                //System.out.println("Added class label " + classLabels[j] + " to ID3 class ");
             }
             mId3Class = new ID3Class(classLabels);
         }
@@ -133,21 +133,21 @@ public class ARFFReader {
         if (mDataInstanceList == null) {
             mDataInstanceList = new ArrayList<String[]>();
         }
-        System.out.println("Total number of Data instances : " + data.numInstances());
+        //System.out.println("Total number of Data instances : " + data.numInstances());
         if (data.numInstances() != 0) {
             for (int i = 0; i < data.numInstances(); i++) {
                 String dataInstanceValue[] = new String[data.instance(i).numValues()];
                 for (int j = 0; j < data.instance(i).numValues(); j++) {
                     if (data.instance(i).attribute(j).isNumeric()) {
                         dataInstanceValue[j] = data.instance(i).value(j) + "";
-                        System.out.println("Adding numeric attribute value : " + dataInstanceValue[j]);
+                        //System.out.println("Adding numeric attribute value : " + dataInstanceValue[j]);
                     } else if (data.instance(i).attribute(j).isNominal()) {
                         dataInstanceValue[j] = data.instance(i).stringValue(j);
-                        System.out.println("Adding nominal attribute value : " + dataInstanceValue[j]);
+                        //System.out.println("Adding nominal attribute value : " + dataInstanceValue[j]);
                     }
                 }
                 mDataInstanceList.add(dataInstanceValue);
-                System.out.println("Number of data instances added to list: " + mDataInstanceList.size());
+                //System.out.println("Number of data instances added to list: " + mDataInstanceList.size());
                 //System.out.println("Instance value of attribute 1: " + data.instance(i).stringValue(1));
             }
         }
@@ -193,7 +193,7 @@ public class ARFFReader {
         try {
             arffLoader.setFile(filedata);
             Instances data = arffLoader.getDataSet();
-
+            System.out.println("Data instance set successfully! No instances : " + data.numInstances());
             setID3Attributes(data);
 
             setID3Class(data);

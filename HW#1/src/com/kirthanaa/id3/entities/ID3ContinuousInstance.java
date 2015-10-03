@@ -27,4 +27,9 @@ public class ID3ContinuousInstance implements Comparable<ID3ContinuousInstance> 
             return -1;
         }
     }
+
+    @Override
+    public boolean equals(Object id3ContinuousInstance){
+        return this.mInstanceValue == ((ID3ContinuousInstance)id3ContinuousInstance).mInstanceValue;
+    }
 }
