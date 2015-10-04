@@ -210,21 +210,24 @@ public class ARFFReader {
     public void parseARFFFile() {
 
         ArffLoader arffLoader = new ArffLoader();
-        //TODO - Change this to the argument
         File filedata = new File(mFileName);
         //File filedata = new File("/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_train.arff");
-        try {
-            arffLoader.setFile(filedata);
-            Instances data = arffLoader.getDataSet();
-            //System.out.println("Data instance set successfully! No instances : " + data.numInstances());
-            setID3Attributes(data);
+        if(filedata.exists() && !filedata.isDirectory()) {
+            try {
+                arffLoader.setFile(filedata);
+                Instances data = arffLoader.getDataSet();
+                //System.out.println("Data instance set successfully! No instances : " + data.numInstances());
+                setID3Attributes(data);
 
-            setID3Class(data);
+                setID3Class(data);
 
-            setDataInstanceList(data);
+                setDataInstanceList(data);
 
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }else{
+            System.out.println("File " + mFileName + " does not exist!");
         }
     }
 }

@@ -567,7 +567,7 @@ public class ID3 {
                 if (rootNode.mNodeLevel > 0) {
                     for (int i = 0; i < nodeLevel; i++) {
                         System.out.print("|");
-                        System.out.print("\t\t");
+                        System.out.print("\t");
                     }
                 }
                 for (int l = 0; l < rootNode.mChildren.get(j).mInstancesAtNode.size(); l++) {

@@ -1,10 +1,7 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="dt-learn:jar">
     <output-path>$USER_HOME$/Desktop</output-path>
-    <properties id="ant-postprocessing">
-      <options enabled="true" />
-    </properties>
-    <root id="archive" name="HW#1.jar">
+    <root id="archive" name="dt-learn.jar">
       <element id="module-output" name="dt-learn" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/weka.jar" path-in-jar="/" />
     </root>
