@@ -5,12 +5,28 @@ package com.kirthanaa.id3.entities;
  */
 public class ID3ContinuousInstance implements Comparable<ID3ContinuousInstance> {
 
+    /**
+     * Ordinal of instance
+     */
     public int mInstanceOrdinal = -1;
 
+    /**
+     * Value of the continuous instance
+     */
     public double mInstanceValue = 0.0;
 
+    /**
+     * Class label of the instance
+     */
     public String mInstanceLabel = "";
 
+    /**
+     * Constructor for initializing ID3ContinuousInstance instance
+     *
+     * @param instanceOrdinal Order of the attribute in the attribute list
+     * @param instanceValue   Value of the instance
+     * @param classLabel      Class Label of the continuous instance
+     */
     public ID3ContinuousInstance(int instanceOrdinal, double instanceValue, String classLabel) {
         this.mInstanceOrdinal = instanceOrdinal;
         this.mInstanceValue = instanceValue;
@@ -29,7 +45,7 @@ public class ID3ContinuousInstance implements Comparable<ID3ContinuousInstance> 
     }
 
     @Override
-    public boolean equals(Object id3ContinuousInstance){
-        return this.mInstanceValue == ((ID3ContinuousInstance)id3ContinuousInstance).mInstanceValue;
+    public boolean equals(Object id3ContinuousInstance) {
+        return this.mInstanceValue == ((ID3ContinuousInstance) id3ContinuousInstance).mInstanceValue;
     }
 }

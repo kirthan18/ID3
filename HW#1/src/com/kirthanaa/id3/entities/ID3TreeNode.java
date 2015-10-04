@@ -29,11 +29,6 @@ public class ID3TreeNode {
     public int mAttributeOrdinal;
 
     /**
-     * Indicates the attribute on which the parent node was split
-     */
-    public ID3Attribute mParentAttribute;
-
-    /**
      * Indicates the class label of the node
      */
     public String mLabel;

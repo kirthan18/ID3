@@ -13,10 +13,24 @@ import java.util.*;
  */
 public class ID3 {
 
-    private static ARFFReader mArffReader;
+    /**
+     * ARFFReader instance for training set
+     */
+    private static ARFFReader mTrainSetArffReader;
 
+    /**
+     * ARFFReader instance for test set
+     */
+    private static ARFFReader mTestSetArffReader;
+
+    /**
+     * Minimum number of instances less than or equal to which training should stop
+     */
     private static int minNoOfInstances = 2;
 
+    /**
+     * List of attributes
+     */
     private static ArrayList<ID3Attribute> unProcessedAttributeList;
 
     /**
@@ -69,7 +83,7 @@ public class ID3 {
      */
     private static double getEntropyForNominalAttribute(ID3Attribute attribute, ArrayList<String[]> data) {
 
-        ID3Class id3Class = mArffReader.getID3Class();
+        ID3Class id3Class = mTrainSetArffReader.getID3Class();
         double entropy = 0.0;
 
         if (data.size() == 0) {
@@ -122,7 +136,7 @@ public class ID3 {
         int attributeLessAndNegativeCount = 0;
         int attributeGreaterAndPositiveCount = 0;
         int attributeGreaterAndNegativeCount = 0;
-        ID3Class id3Class = mArffReader.getID3Class();
+        ID3Class id3Class = mTrainSetArffReader.getID3Class();
 
         double entropy = 0.0;
 
@@ -268,9 +282,9 @@ public class ID3 {
             if (bestCandidateSplitIndex != -1) {
                 //System.out.println("Min entropy found at index : " + bestCandidateSplitIndex);
                 if (avgList.size() == 0) {
-                    informationGain = getOverallEntropy(mArffReader.getID3Class(), data);
+                    informationGain = getOverallEntropy(mTrainSetArffReader.getID3Class(), data);
                 } else {
-                    informationGain = getOverallEntropy(mArffReader.getID3Class(), data) - entropy[bestCandidateSplitIndex];
+                    informationGain = getOverallEntropy(mTrainSetArffReader.getID3Class(), data) - entropy[bestCandidateSplitIndex];
                 }
                 if (informationGain < 0) {
                     //TODO Decide how to handle this
@@ -343,7 +357,7 @@ public class ID3 {
      * @return Majority class label
      */
     private static String getMajorityClassLabel(ArrayList<String[]> dataInstanceList) {
-        ID3Class id3Class = mArffReader.getID3Class();
+        ID3Class id3Class = mTrainSetArffReader.getID3Class();
         int noOfClasses = id3Class.mNoOfClasses;
         int countClassLabels[] = new int[noOfClasses];
 
@@ -391,14 +405,17 @@ public class ID3 {
         return null;
     }
 
+
     /**
      * Parses the given input ARFF File
      *
      * @param filename Name/Path of file to be parsed
+     * @return ARFFReader instance
      */
-    private static void parseARFFFile(String filename) {
-        mArffReader = new ARFFReader(filename);
-        mArffReader.parseARFFFile();
+    private static ARFFReader parseARFFFile(String filename) {
+        ARFFReader arffReader = ARFFReader.getInstance(filename);
+        arffReader.parseARFFFile();
+        return arffReader;
     }
 
     /**
@@ -432,7 +449,7 @@ public class ID3 {
      * @return Root node of the decision tree
      */
     private static ID3TreeNode buildDecisionTree(ArrayList<String[]> dataInstanceList, int nodeLevel) {
-        double overallEntropy = getOverallEntropy(mArffReader.getID3Class(), dataInstanceList);
+        double overallEntropy = getOverallEntropy(mTrainSetArffReader.getID3Class(), dataInstanceList);
         //System.out.println("Entropy value of entire data set: " + overallEntropy);
 
         if (dataInstanceList.size() < minNoOfInstances) {
@@ -476,8 +493,8 @@ public class ID3 {
                 }
             }
 
-            ID3Attribute splitAttribute = mArffReader.getAttributeList().get(maxInfoGainIndex);
-            System.out.println("Splitting on attribute : " + splitAttribute.mAttributeName + " at node level : " + nodeLevel);
+            ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(maxInfoGainIndex);
+            //System.out.println("Splitting on attribute : " + splitAttribute.mAttributeName + " at node level : " + nodeLevel);
             if (splitAttribute.mAttributeType == ID3Attribute.NOMINAL) {
                 ID3TreeNode id3TreeNode = new ID3TreeNode();
                 id3TreeNode.mIsLeafNode = false;
@@ -539,29 +556,153 @@ public class ID3 {
      * @param rootNode Root of the decision tree
      */
     private static void printDecisionTree(ID3TreeNode rootNode) {
+        int nodeLevel = rootNode.mNodeLevel;
+        String classLabel1 = mTrainSetArffReader.getID3Class().mClassLabels[0];
+        String classLabel2 = mTrainSetArffReader.getID3Class().mClassLabels[1];
 
+        if (rootNode.mChildren != null) {
+            for (int j = 0; j < rootNode.mChildren.size(); j++) {
+                int class1 = 0;
+                int class2 = 0;
+                if (rootNode.mNodeLevel > 0) {
+                    for (int i = 0; i < nodeLevel; i++) {
+                        System.out.print("|");
+                        System.out.print("\t\t");
+                    }
+                }
+                for (int l = 0; l < rootNode.mChildren.get(j).mInstancesAtNode.size(); l++) {
+                    if (rootNode.mChildren.get(j).mInstancesAtNode.get(l)[rootNode.mChildren.get(j).mInstancesAtNode.get(l).length - 1].equalsIgnoreCase(classLabel1)) {
+                        class1++;
+                    } else if (rootNode.mChildren.get(j).mInstancesAtNode.get(l)[rootNode.mChildren.get(j).mInstancesAtNode.get(l).length - 1].equalsIgnoreCase(classLabel2)) {
+                        class2++;
+                    }
+                }
+                //System.out.println("Class 1 instances : " + class1);
+                //System.out.println("Class 2 instances : " + class2);
+                System.out.print(rootNode.mNodeAttribute.mAttributeName);
+                if (rootNode.mNodeAttribute.mAttributeType == ID3Attribute.NOMINAL) {
+                    System.out.print(" = ");
+                    System.out.print(mTrainSetArffReader.getAttributeList().get(rootNode.mAttributeOrdinal).mAttributeValues[j]);
+                } else if (rootNode.mNodeAttribute.mAttributeType == ID3Attribute.NUMERIC) {
+                    if (rootNode.mChildren.indexOf(rootNode.mChildren.get(j)) == 0) {
+                        System.out.print(" <= ");
+                    } else if (rootNode.mChildren.indexOf(rootNode.mChildren.get(j)) == 1) {
+                        System.out.print(" > ");
+                    }
+                    System.out.print(rootNode.mContinuousAttributeThreshold);
+                }
+                System.out.print(" [");
+                System.out.print(String.valueOf(class1));
+                System.out.print(" ");
+                System.out.print(String.valueOf(class2));
+                System.out.print("]");
+
+                if (rootNode.mChildren.get(j).mIsLeafNode) {
+                    System.out.print(": ");
+                    if (rootNode.mChildren.get(j).mLabel == null) {
+                        System.out.println(classLabel1);
+                    } else {
+                        System.out.println(rootNode.mChildren.get(j).mLabel);
+                    }
+                } else {
+                    System.out.println();
+                    printDecisionTree(rootNode.mChildren.get(j));
+                }
+            }
+        }
     }
+
+    /**
+     * Evaluates a test instance by applying it to the learned tree and predicts the class label
+     *
+     * @param rootNode     Root node of the decision tree learnt from the training data
+     * @param testInstance Instance for which class label is to be predicted
+     * @return Class label of the instance
+     */
+    private static String evaluateInstance(ID3TreeNode rootNode, String[] testInstance) {
+
+        ID3Attribute attribute = rootNode.mNodeAttribute;
+        if (rootNode.mIsLeafNode) {
+            return rootNode.mLabel;
+        } else {
+            if (attribute.mAttributeType == ID3Attribute.NUMERIC) {
+                double splitValue = rootNode.mContinuousAttributeThreshold;
+                if (Double.parseDouble(testInstance[attribute.mAttributeOrdinal]) <= splitValue) {
+                    return (evaluateInstance(rootNode.mChildren.get(0), testInstance));
+                } else if (Double.parseDouble(testInstance[attribute.mAttributeOrdinal]) > splitValue) {
+                    return (evaluateInstance(rootNode.mChildren.get(1), testInstance));
+                }
+            } else if (attribute.mAttributeType == ID3Attribute.NOMINAL) {
+                String instanceAttributeValue = testInstance[attribute.mAttributeOrdinal];
+                int attributeIndex = -1;
+                for (int l = 0; l < attribute.getNumberOfAttributeValues(); l++) {
+                    if (instanceAttributeValue.equalsIgnoreCase(attribute.mAttributeValues[l])) {
+                        attributeIndex = l;
+                        break;
+                    }
+                }
+                return (evaluateInstance(rootNode.mChildren.get(attributeIndex), testInstance));
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Evaluates the testing set on the constructed decision tree
+     *
+     * @param rootNode Root node of the constructed decision tree
+     */
+    private static void evaluateTestData(ID3TreeNode rootNode) {
+        int numCorrectlyClassified = 0;
+        ArrayList<String[]> testDataInstance = mTestSetArffReader.getDataInstanceList();
+
+        System.out.println("<Predictions for the Test Set Instances>");
+
+        if (testDataInstance != null && testDataInstance.size() > 0) {
+            for (int i = 0; i < testDataInstance.size(); i++) {
+                String predictedClassLabel = "";
+                String actualClassLabel = testDataInstance.get(i)[testDataInstance.get(i).length - 1];
+                System.out.print(String.format("%3d", i+1) + ": Actual: " + actualClassLabel + " Predicted: ");
+                predictedClassLabel = evaluateInstance(rootNode, testDataInstance.get(i));
+                if (predictedClassLabel.equalsIgnoreCase(actualClassLabel)) {
+                    numCorrectlyClassified++;
+                }
+                System.out.println(predictedClassLabel);
+            }
+            System.out.println("Number of correctly classified: " + numCorrectlyClassified +
+                    " Total number of test instances: " + testDataInstance.size());
+        }
+    }
+
 
     /**
      * Initializes the unprocessed attribute list with all the attributes
      */
     private static void setUnProcessedAttributeList() {
-        unProcessedAttributeList = new ArrayList<ID3Attribute>(mArffReader.getAttributeList().size());
-        unProcessedAttributeList = mArffReader.getAttributeList();
+        unProcessedAttributeList = new ArrayList<ID3Attribute>(mTrainSetArffReader.getAttributeList().size());
+        unProcessedAttributeList = mTrainSetArffReader.getAttributeList();
     }
 
 
     public static void main(String[] args) {
-        //TODO - Fetch the input and output filenames from command line
-        String filename = "/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_train.arff";
 
-        parseARFFFile(filename);
+        //String trainFilename = "/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_train.arff";
+        //String testFilename = "/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_test.arff";
+
+        String trainFilename = args[0];
+        String testFilename = args[1];
+        minNoOfInstances = Integer.parseInt(args[2]);
+        mTrainSetArffReader = parseARFFFile(trainFilename);
 
         setUnProcessedAttributeList();
 
-        ID3TreeNode mID3RootNode = buildDecisionTree(mArffReader.getDataInstanceList(), 0);
+        ID3TreeNode mID3RootNode = buildDecisionTree(mTrainSetArffReader.getDataInstanceList(), 0);
 
         printDecisionTree(mID3RootNode);
+
+        mTestSetArffReader = parseARFFFile(testFilename);
+
+        evaluateTestData(mID3RootNode);
 
     }
 

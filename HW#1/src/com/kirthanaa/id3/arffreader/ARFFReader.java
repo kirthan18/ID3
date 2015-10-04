@@ -13,21 +13,44 @@ import java.util.ArrayList;
  */
 public class ARFFReader {
 
+    /**
+     * File name/path that is to be parsed
+     */
     private String mFileName = "";
 
-    private static ArrayList<String[]> mDataInstanceList = null;
+    /**
+     * List of data instances in ARFF file
+     */
+    private ArrayList<String[]> mDataInstanceList = null;
 
-    private static ID3Class mId3Class = null;
+    /**
+     * ID3Class instance for the parsed file
+     */
+    private ID3Class mId3Class = null;
 
-    private static ArrayList<ID3Attribute> mID3AttributeList = null;
+    /**
+     * List of attributes in the parsed ARFF File
+     */
+    private ArrayList<ID3Attribute> mID3AttributeList = null;
 
-    public ARFFReader(String fileName) {
-        if (fileName == "") {
+    /**
+     * Gets an instance of ARFFReader class
+     *
+     * @param fileName Name/Path of file to be parsed
+     * @return ARFFReader instance
+     */
+    public static ARFFReader getInstance(String fileName) {
+        ARFFReader arffReader = new ARFFReader();
+        /*if (fileName == "") {
             System.out.println("Filename is empty!");
         } else {
             System.out.println("Filename : " + fileName);
-        }
-        this.mFileName = fileName;
+        }*/
+        arffReader.mFileName = fileName;
+        arffReader.mDataInstanceList = null;
+        arffReader.mId3Class = null;
+        arffReader.mID3AttributeList = null;
+        return arffReader;
     }
 
     /**
@@ -72,7 +95,7 @@ public class ARFFReader {
      */
     public ArrayList<ID3Attribute> getAttributeList() {
         if (mID3AttributeList == null) {
-            System.out.println("Attribute list is null!");
+            //System.out.println("Attribute list is null!");
             return null;
         } else {
             return mID3AttributeList;
@@ -103,7 +126,7 @@ public class ARFFReader {
      */
     public ID3Class getID3Class() {
         if (mId3Class == null) {
-            System.out.println("Class label is null!");
+            //System.out.println("Class label is null!");
             return null;
         } else {
             return mId3Class;
@@ -117,7 +140,7 @@ public class ARFFReader {
      */
     public ArrayList<String[]> getDataInstanceList() {
         if (mDataInstanceList == null) {
-            System.out.println("Data instance list is empty");
+            //System.out.println("Data instance list is empty");
             return null;
         } else {
             return mDataInstanceList;
@@ -160,7 +183,7 @@ public class ARFFReader {
      */
     private int getNumberOfDataInstances() {
         if (mDataInstanceList == null) {
-            System.out.println("Data instance list is null!");
+            //System.out.println("Data instance list is null!");
             return -1;
         } else {
             return mDataInstanceList.size();
@@ -174,7 +197,7 @@ public class ARFFReader {
      */
     private int getNumberOfAttributes() {
         if (mID3AttributeList == null) {
-            System.out.println("Attribute list is null!");
+            //System.out.println("Attribute list is null!");
             return -1;
         } else {
             return mID3AttributeList.size();
@@ -193,7 +216,7 @@ public class ARFFReader {
         try {
             arffLoader.setFile(filedata);
             Instances data = arffLoader.getDataSet();
-            System.out.println("Data instance set successfully! No instances : " + data.numInstances());
+            //System.out.println("Data instance set successfully! No instances : " + data.numInstances());
             setID3Attributes(data);
 
             setID3Class(data);
@@ -204,22 +227,4 @@ public class ARFFReader {
             System.out.println(e.getMessage());
         }
     }
-
-    /*public static void main(String args[]){
-            ArffLoader arffloader=new ArffLoader();
-            File filedata = new File("/Users/kirthanaaraghuraman/Documents/CS760/Assignments/HW#1/src/com/kirthanaa/id3/trainingset/diabetes_train.arff");
-            try {
-                arffloader.setFile(filedata);
-                Instances data = arffloader.getDataSet();
-
-                setID3Attributes(data);
-
-                setID3Class(data);
-
-                setDataInstanceList(data);
-
-            }catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-    }*/
 }
