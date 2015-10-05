@@ -508,7 +508,7 @@ public class ID3 {
                 }
             }
 
-            double minEntropy = entropy[0];
+            /*double minEntropy = entropy[0];
             int minEntropyIndex = 0;
             for (int l = 1; l < entropy.length; l++) {
                 if (entropy[l] < minEntropy) {
@@ -519,10 +519,10 @@ public class ID3 {
                         isDuplicateInfoGain = true;
                     }
                 }
-            }
+            }*/
 
-            //ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(maxInfoGainIndex);
-            ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(minEntropyIndex);
+            ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(maxInfoGainIndex);
+            //ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(minEntropyIndex);
             //System.out.println("Splitting on attribute : " + splitAttribute.mAttributeName + " at node level : " + nodeLevel);
             if (splitAttribute.mAttributeType == ID3Attribute.NOMINAL) {
                 ID3TreeNode id3TreeNode = new ID3TreeNode();
