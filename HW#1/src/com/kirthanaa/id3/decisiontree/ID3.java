@@ -34,6 +34,10 @@ public class ID3 {
     private static ArrayList<ID3Attribute> unProcessedAttributeList;
 
     /**
+     * Accuracy of training set
+     */
+    private static double mAccuracy = 0.0;
+    /**
      * Given an array of entropies, returns the index with the minimum entropy
      *
      * @param data Array containing various entropies calculated for continuous attributes at identified candidate splits
@@ -292,7 +296,11 @@ public class ID3 {
                     //System.out.println("Value of attribute after which we split : " + continuousInstancesList.get(candidateSplitPoints[bestCandidateSplitIndex]).mInstanceValue);
                     double splitValue = 0.0;
                     if (bestCandidateSplitIndex >= avgList.size() - 1) {
-                        splitValue = valueList.get(bestCandidateSplitIndex);
+                        if(avgList.size() == 0){
+                            splitValue = 0.0;
+                        }else {
+                            splitValue = avgList.get(bestCandidateSplitIndex);
+                        }
                     } else {
                         splitValue = avgList.get(bestCandidateSplitIndex);
                     }
@@ -316,6 +324,10 @@ public class ID3 {
     private static double getOverallEntropy(ID3Class id3Class, ArrayList<String[]> data) {
         int numberOfClassLabels = id3Class.mNoOfClasses;
         double entropy = 0.0;
+
+        if(data.size() == 0){
+            return 0.0;
+        }
 
         int totalInstances = data.size();
         for (int i = 0; i < numberOfClassLabels; i++) {
@@ -467,14 +479,17 @@ public class ID3 {
         } else {
             //System.out.println("Node level : " + nodeLevel);
             double informationGain[] = new double[unProcessedAttributeList.size()];
+            double entropy[] = new double[unProcessedAttributeList.size()];
             //System.out.println("Unprocessed attribute list size : " + unProcessedAttributeList.size());
             for (int i = 0; i < unProcessedAttributeList.size(); i++) {
                 if (unProcessedAttributeList.get(i).mAttributeType == ID3Attribute.NOMINAL) {
-                    informationGain[i] = overallEntropy - getEntropyForNominalAttribute(unProcessedAttributeList.get(i), dataInstanceList);
+                    entropy[i] = getEntropyForNominalAttribute(unProcessedAttributeList.get(i), dataInstanceList);
+                    informationGain[i] = overallEntropy - entropy[i];
                 } else if (unProcessedAttributeList.get(i).mAttributeType == ID3Attribute.NUMERIC) {
                     double splitValue = getBestSplitForContinuousAttribute(unProcessedAttributeList.get(i), dataInstanceList);
-                    informationGain[i] = overallEntropy - getEntropyForContinuousAttribute(unProcessedAttributeList.get(i)
+                    entropy[i] = getEntropyForContinuousAttribute(unProcessedAttributeList.get(i)
                             , splitValue, dataInstanceList);
+                    informationGain[i] = overallEntropy - entropy[i];
                 }
                 //System.out.println("Information gain for attribute " + unProcessedAttributeList.get(i).mAttributeName + " : " + informationGain[i]);
             }
@@ -493,7 +508,21 @@ public class ID3 {
                 }
             }
 
-            ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(maxInfoGainIndex);
+            double minEntropy = entropy[0];
+            int minEntropyIndex = 0;
+            for (int l = 1; l < entropy.length; l++) {
+                if (entropy[l] < minEntropy) {
+                    minEntropy = entropy[l];
+                    minEntropyIndex = l;
+                } else {
+                    if (minEntropy == informationGain[l]) {
+                        isDuplicateInfoGain = true;
+                    }
+                }
+            }
+
+            //ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(maxInfoGainIndex);
+            ID3Attribute splitAttribute = mTrainSetArffReader.getAttributeList().get(minEntropyIndex);
             //System.out.println("Splitting on attribute : " + splitAttribute.mAttributeName + " at node level : " + nodeLevel);
             if (splitAttribute.mAttributeType == ID3Attribute.NOMINAL) {
                 ID3TreeNode id3TreeNode = new ID3TreeNode();
@@ -671,6 +700,7 @@ public class ID3 {
             }
             System.out.println("Number of correctly classified: " + numCorrectlyClassified +
                     " Total number of test instances: " + testDataInstance.size());
+            mAccuracy = (double)numCorrectlyClassified/(double)testDataInstance.size() * 100.00;
         }
     }
 
@@ -683,6 +713,15 @@ public class ID3 {
         unProcessedAttributeList = mTrainSetArffReader.getAttributeList();
     }
 
+
+    private static void getAccuracyForMValues(int[] mValues){
+        for(int i = 0; i < mValues.length; i++){
+            minNoOfInstances = mValues[i];
+            ID3TreeNode rootNode = buildDecisionTree(mTrainSetArffReader.getDataInstanceList(), 0);
+            evaluateTestData(rootNode);
+            System.out.println("Accuracy for m value = " + minNoOfInstances + " = " + mAccuracy);
+        }
+    }
 
     public static void main(String[] args) {
 
@@ -704,6 +743,8 @@ public class ID3 {
 
         evaluateTestData(mID3RootNode);
 
+        //int mValues[] = {2,4,10,20};
+        //getAccuracyForMValues(mValues);
     }
 
 }
